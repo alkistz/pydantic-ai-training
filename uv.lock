@@ -901,10 +901,14 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "pydantic-ai" },
+    { name = "pydantic-settings" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pydantic-ai", specifier = ">=0.4.10" }]
+requires-dist = [
+    { name = "pydantic-ai", specifier = ">=0.4.10" },
+    { name = "pydantic-settings", specifier = ">=2.10.1" },
+]
 
 [[package]]
 name = "pydantic-core"
