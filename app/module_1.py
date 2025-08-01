@@ -177,7 +177,9 @@ async def run_agent(message: str):
     db = CustomerDatabase()
     deps = CustomerServiceDeps(db)
     result = await customer_service_agent.run(message, deps=deps)
-    print(result)
+    print(result.output)
+
+
 
 
 if __name__ == "__main__":
