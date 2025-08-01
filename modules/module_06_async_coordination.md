@@ -1,3 +1,133 @@
+# Module 6: Async Multi-Agent Coordination
+## Detailed Code Examples
+
+### Learning Objectives
+- Design async multi-agent architectures
+- Implement concurrent agent execution
+- Handle async communication patterns
+- Manage shared state and coordination
+
+---
+
+## 6.1 Concurrent Agent Execution
+
+```python
+# concurrent_agents.py
+import asyncio
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Any, Tuple
+from pydantic_ai import Agent, RunContext
+from pydantic import BaseModel
+from datetime import datetime
+import time
+
+class AnalysisResult(BaseModel):
+    """Result from a concurrent analysis agent"""
+    agent_type: str
+    analysis: str
+    confidence: float
+    processing_time: float
+    recommendations: List[str]
+    requires_action: bool
+
+@dataclass
+class ConcurrentDeps:
+    request_id: str
+    priority: str = "normal"
+    timeout: int = 30
+    start_time: float = None
+    
+    def __post_init__(self):
+        if self.start_time is None:
+            self.start_time = time.time()
+
+class ConcurrentAnalysisSystem:
+    """System that runs multiple agents concurrently for comprehensive analysis"""
+    
+    def __init__(self):
+        self.agents = self._initialize_agents()
+        self.active_requests: Dict[str, Dict] = {}
+    
+    def _initialize_agents(self):
+        """Initialize specialized analysis agents"""
+        
+        # Sentiment analysis agent
+        sentiment_agent = Agent(
+            'openai:gpt-4o-mini',
+            output_type=AnalysisResult,
+            deps_type=ConcurrentDeps,
+            system_prompt="""
+            You are a sentiment analysis specialist. Analyze the emotional tone,
+            urgency level, and customer satisfaction indicators in customer messages.
+            Provide confidence scores and actionable recommendations.
+            """,
+            retries=2
+        )
+        
+        # Technical complexity agent
+        technical_agent = Agent(
+            'openai:gpt-4o',
+            output_type=AnalysisResult,
+            deps_type=ConcurrentDeps,
+            system_prompt="""
+            You are a technical complexity analyzer. Assess the technical difficulty,
+            required expertise level, and potential solutions for technical issues.
+            Estimate resolution time and identify required resources.
+            """,
+            retries=2
+        )
+        
+        # Business impact agent
+        business_agent = Agent(
+            'openai:gpt-4o-mini',
+            output_type=AnalysisResult,
+            deps_type=ConcurrentDeps,
+            system_prompt="""
+            You are a business impact analyzer. Evaluate how customer issues affect
+            business operations, revenue, and relationships. Assess priority levels
+            and escalation needs based on business impact.
+            """,
+            retries=2
+        )
+        
+        # Risk assessment agent
+        risk_agent = Agent(
+            'openai:gpt-4o',
+            output_type=AnalysisResult,
+            deps_type=ConcurrentDeps,
+            system_prompt="""
+            You are a risk assessment specialist. Identify potential risks, security
+            concerns, legal implications, and compliance issues in customer situations.
+            Provide risk mitigation recommendations.
+            """,
+            retries=2
+        )
+        
+        return {
+            "sentiment": sentiment_agent,
+            "technical": technical_agent,
+            "business": business_agent,
+            "risk": risk_agent
+        }
+    
+    async def analyze_customer_issue(
+        self, 
+        customer_message: str, 
+        customer_info: Dict,
+        priority: str = "normal"
+    ) -> Dict[str, Any]:
+        """Run concurrent analysis of customer issue"""
+        
+        request_id = f"REQ{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        start_time = time.time()
+        
+        # Create dependencies
+        deps = ConcurrentDeps(
+            request_id=request_id,
+            priority=priority,
+            start_time=start_time
+        )
+        
         # Prepare analysis context
         analysis_context = f"""
         Customer Message: {customer_message}
