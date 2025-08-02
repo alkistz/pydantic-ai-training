@@ -178,7 +178,8 @@ async def run_agent(message: str):
     deps = CustomerServiceDeps(db)
     result = await customer_service_agent.run(message, deps=deps)
     print(result.output)
-
+    result2 = await customer_service_agent.run("What was my first question?", deps=deps, message_history=result.all_messages())
+    print(result2.output)
 
 
 
